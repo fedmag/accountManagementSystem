@@ -1,0 +1,12 @@
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm} %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- TODO crete differrent profile with different log levels -> consider using the application.properties-->
+  <root level="info">
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
