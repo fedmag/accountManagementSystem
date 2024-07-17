@@ -9,7 +9,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "roles")
 public class Role {
@@ -38,38 +42,6 @@ public class Role {
   public Role(long id, String code, String name, Set<AppUser> users) {
     this(code, name);
     this.id = id;
-    this.users = users;
-  }
-
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public String getCode() {
-    return code;
-  }
-
-  public void setCode(String code) {
-    this.code = code;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public Set<AppUser> getUsers() {
-    return users;
-  }
-
-  public void setUsers(Set<AppUser> users) {
     this.users = users;
   }
 }

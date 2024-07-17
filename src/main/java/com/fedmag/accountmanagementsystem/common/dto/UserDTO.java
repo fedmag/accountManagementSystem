@@ -5,7 +5,11 @@ import com.fedmag.accountmanagementsystem.model.AppUser;
 import com.fedmag.accountmanagementsystem.model.Role;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class UserDTO {
 
   private long id;
@@ -31,43 +35,4 @@ public class UserDTO {
         appUser.getLastname(), appUser.getEmail(), appUser.getRoles());
   }
 
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getLastname() {
-    return lastname;
-  }
-
-  public void setLastname(String lastname) {
-    this.lastname = lastname;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public Set<String> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<String> roles) {
-    this.roles = roles;
-  }
 }

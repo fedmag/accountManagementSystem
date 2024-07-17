@@ -2,7 +2,9 @@ package com.fedmag.accountmanagementsystem.common.dto;
 
 import com.fedmag.accountmanagementsystem.model.SecurityEvent;
 import java.time.LocalDateTime;
+import lombok.Getter;
 
+@Getter
 public class SecurityEventDTO {
 
   private long id;
@@ -23,27 +25,4 @@ public class SecurityEventDTO {
     return dto;
   }
 
-  public long getId() {
-    return id;
-  }
-
-  public LocalDateTime getDate() {
-    return date;
-  }
-
-  public String getAction() {
-    return action;
-  }
-
-  public String getSubject() {
-    return subject;
-  }
-
-  public String getObject() {
-    return object;
-  }
-
-  public String getPath() {
-    return path;
-  }
 }

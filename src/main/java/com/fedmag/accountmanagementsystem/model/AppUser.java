@@ -16,8 +16,12 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "Users")
 public class AppUser {
@@ -58,66 +62,6 @@ public class AppUser {
     return new UserDTO(id, name, lastname, email, roles);
   }
 
-  public long getId() {
-    return id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public String getLastname() {
-    return lastname;
-  }
-
-  public void setLastname(String lastname) {
-    this.lastname = lastname;
-  }
-
-  public Set<Role> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<Role> roles) {
-    this.roles = roles;
-  }
-
-  public boolean isAccountLocked() {
-    return accountLocked;
-  }
-
-  public void setAccountLocked(boolean accountLocked) {
-    this.accountLocked = accountLocked;
-  }
-
-  public int getFailedAttempt() {
-    return failedAttempt;
-  }
-
-  public void setFailedAttempt(int failedAttempt) {
-    this.failedAttempt = failedAttempt;
-  }
-
   public void addRole(Role group) {
     this.roles.add(group);
   }
@@ -129,6 +73,6 @@ public class AppUser {
   public boolean hasRole(RolesEnum role) {
     return this.getRoles().stream()
         .anyMatch(r -> r.getCode().equals(
-            role.getString())); // TODO this might be done with the find by stirng in the enum
+            role.getString()));
   }
 }

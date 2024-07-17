@@ -13,6 +13,8 @@ public record RegistrationRequest(
     @Pattern(regexp = "@acme.com", message = "only acme emails are allowed.")
     String email,
 
-    @Size(min = 12, message = "password must be longer than 12 chars.") String password,
+    @Size(min = 12, message = "password must be longer than 12 chars.")
+    String password,
+
     String authority
 ) {}

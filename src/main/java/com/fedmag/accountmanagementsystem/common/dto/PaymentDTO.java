@@ -4,7 +4,11 @@ import com.fedmag.accountmanagementsystem.model.AppUser;
 import com.fedmag.accountmanagementsystem.model.Salary;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class PaymentDTO {
   private String name;
   private String lastname;
@@ -28,21 +32,5 @@ public class PaymentDTO {
     Long dollars = salary / 100;
     long cents = salary % 100;
     return dollars + " dollar(s) " + cents + " cent(s)";
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getLastname() {
-    return lastname;
-  }
-
-  public String getPeriod() {
-    return period;
-  }
-
-  public String getSalary() {
-    return salary;
   }
 }
