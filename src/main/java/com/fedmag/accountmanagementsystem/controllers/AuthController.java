@@ -1,7 +1,7 @@
 package com.fedmag.accountmanagementsystem.controllers;
 
 
-import com.fedmag.accountmanagementsystem.common.dto.EmailStatusDTO;
+import com.fedmag.accountmanagementsystem.common.dto.EmailStatusUpdateDTO;
 import com.fedmag.accountmanagementsystem.common.dto.UserDTO;
 import com.fedmag.accountmanagementsystem.common.requests.ChangePassRequest;
 import com.fedmag.accountmanagementsystem.common.requests.RegistrationRequest;
@@ -42,12 +42,11 @@ public class AuthController {
   }
 
   @PostMapping("/changepass")
-  public ResponseEntity<EmailStatusDTO> changePass(
+  public ResponseEntity<EmailStatusUpdateDTO> changePass(
       @AuthenticationPrincipal UserDetails userDetails,
       @RequestBody ChangePassRequest passRequest) {
 
     log.info("changepass endpoint called. Param: {}", passRequest.toString());
-    EmailStatusDTO emailStatusDTO = authService.changePass(userDetails, passRequest);
-    return ResponseEntity.ok().body(emailStatusDTO);
+    return ResponseEntity.ok().body(authService.changePass(userDetails, passRequest));
   }
 }

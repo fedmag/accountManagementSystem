@@ -1,7 +1,10 @@
 package com.fedmag.accountmanagementsystem.controllers;
 
+
+import com.fedmag.accountmanagementsystem.common.dto.StatusUpdateDTO;
 import com.fedmag.accountmanagementsystem.common.dto.UserDTO;
-import com.fedmag.accountmanagementsystem.common.dto.UserStatusDTO;
+import com.fedmag.accountmanagementsystem.common.dto.UserStatusUpdateDTO;
+import com.fedmag.accountmanagementsystem.common.requests.ChangeAccessRequest;
 import com.fedmag.accountmanagementsystem.common.requests.RoleChangeRequest;
 import com.fedmag.accountmanagementsystem.service.AdministratorService;
 import jakarta.validation.Valid;
@@ -31,16 +34,20 @@ public class AdministratorController {
   }
 
   @DeleteMapping(value = {"/user/{userEmail}", "/user/", "/user"})
-  //TODO remove the second part as it is only needed for passing auto tests. Same for the required
-  public ResponseEntity<UserStatusDTO> deleteUser(
+  public ResponseEntity<UserStatusUpdateDTO> deleteUser(
       @PathVariable(value = "userEmail", required = false) String userEmail) {
     administratorService.deleteUser(userEmail);
-    return ResponseEntity.ok(new UserStatusDTO(userEmail, "Deleted successfully!"));
+    return ResponseEntity.ok(new UserStatusUpdateDTO(userEmail, "Deleted successfully!"));
   }
 
   @PutMapping("/user/role")
   public ResponseEntity<UserDTO> updateUser(
       @RequestBody @Valid RoleChangeRequest roleChangeRequest) {
     return ResponseEntity.ok(administratorService.changeUserRole(roleChangeRequest));
+  }
+
+  @PutMapping("/user/access")
+  public StatusUpdateDTO changeUserAccess(@RequestBody ChangeAccessRequest accessRequest) {
+    return administratorService.changeUserAccess(accessRequest);
   }
 }

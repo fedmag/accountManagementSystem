@@ -1,15 +1,20 @@
 package com.fedmag.accountmanagementsystem.service;
 
 
+import com.fedmag.accountmanagementsystem.common.AppEvent;
 import com.fedmag.accountmanagementsystem.common.OperationsEnum;
 import com.fedmag.accountmanagementsystem.common.RolesEnum;
+import com.fedmag.accountmanagementsystem.common.dto.StatusUpdateDTO;
 import com.fedmag.accountmanagementsystem.common.dto.UserDTO;
 import com.fedmag.accountmanagementsystem.common.exceptions.BadRequestException;
 import com.fedmag.accountmanagementsystem.common.exceptions.NotFoundException;
+import com.fedmag.accountmanagementsystem.common.requests.ChangeAccessRequest;
 import com.fedmag.accountmanagementsystem.common.requests.RoleChangeRequest;
 import com.fedmag.accountmanagementsystem.model.AppUser;
 import com.fedmag.accountmanagementsystem.model.RoleRepo;
+import com.fedmag.accountmanagementsystem.model.SecurityEventsEnum;
 import com.fedmag.accountmanagementsystem.model.UserRepo;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -17,22 +22,27 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AdministratorService {
 
+  private final static Set<RolesEnum> ADMINISTRATIVE_ROLES = Set.of(RolesEnum.ADMIN);
+  private final static Set<RolesEnum> BUSINESS_ROLES = Set.of(RolesEnum.ACCOUNTANT, RolesEnum.USER,
+      RolesEnum.AUDITOR);
   private final UserRepo userRepo;
   private final RoleRepo roleRepo;
-
-  private final static Set<RolesEnum> ADMINISTRATIVE_ROLES = Set.of(RolesEnum.ADMIN);
-  private final static Set<RolesEnum> BUSINESS_ROLES = Set.of(RolesEnum.ACCOUNTANT, RolesEnum.USER);
+  private final ApplicationEventPublisher eventPublisher;
+  private final HttpServletRequest request;
 
   @Autowired
-  public AdministratorService(UserRepo userRepo, RoleRepo roleRepo) {
+  public AdministratorService(UserRepo userRepo, RoleRepo roleRepo,
+      ApplicationEventPublisher eventPublisher, HttpServletRequest request) {
     this.userRepo = userRepo;
     this.roleRepo = roleRepo;
+    this.eventPublisher = eventPublisher;
+    this.request = request;
   }
 
   public List<UserDTO> getAllUsers() {
@@ -45,7 +55,6 @@ public class AdministratorService {
     return users;
   }
 
-  @Transactional
   public void deleteUser(String userEmail) {
     userEmail = userEmail.toLowerCase();
     Optional<AppUser> deletingUser = userRepo.findByEmail(userEmail);
@@ -53,15 +62,57 @@ public class AdministratorService {
       throw new NotFoundException("User not found!");
     }
     AppUser user = deletingUser.get();
-    if (userHasRole(user, RolesEnum.ADMIN)) {
+    if (user.hasRole(RolesEnum.ADMIN)) {
       throw new BadRequestException("Can't remove ADMINISTRATOR role!");
     }
-    userRepo.deleteByEmail(userEmail);
+    eventPublisher.publishEvent(
+        new AppEvent(this, SecurityEventsEnum.DELETE_USER,
+            request.getRemoteUser().toLowerCase(), userEmail, request.getRequestURI()));
+    userRepo.delete(user);
+  }
+
+  public StatusUpdateDTO changeUserAccess(ChangeAccessRequest accessRequest) {
+    AppUser user = userRepo.findByEmail(accessRequest.user().toLowerCase()).orElseThrow();
+
+    switch (accessRequest.operation().toUpperCase()) {
+      case "LOCK" -> {
+        if (user.hasRole(RolesEnum.ADMIN)) {
+          throw new BadRequestException("Can't lock the ADMINISTRATOR!");
+        }
+        if (user.isAccountLocked()) {
+          break;
+        }
+        //if not already locked
+        user.setAccountLocked(true);
+
+        eventPublisher.publishEvent( new AppEvent(this,
+            SecurityEventsEnum.LOCK_USER,
+            request.getRemoteUser(),
+            "Lock user %s".formatted(user.getEmail()),
+            request.getRequestURI()));
+      }
+      case "UNLOCK" -> {
+        user.setAccountLocked(false);
+        user.setFailedAttempt(0);
+
+        eventPublisher.publishEvent(new AppEvent(this,
+            SecurityEventsEnum.UNLOCK_USER,
+            request.getRemoteUser(),
+            "Unlock user %s".formatted(user.getEmail()),
+            request.getRequestURI()));
+      }
+    }
+    userRepo.save(user);
+
+    String message = "User %s %sed!".formatted(user.getEmail(),
+        accessRequest.operation().toLowerCase());
+    return new StatusUpdateDTO(message);
   }
 
   public UserDTO changeUserRole(RoleChangeRequest changeRequest) {
     OperationsEnum operation = OperationsEnum.valueOf(changeRequest.operation().toUpperCase());
-    String roleToModifyStr = "ROLE_" + changeRequest.role(); // TODO we can modify the Enum to respond to both cases, ex: having another string
+    String roleToModifyStr = "ROLE_"
+        + changeRequest.role(); // TODO we can modify the Enum to respond to both cases, ex: having another string
     RolesEnum roleToModify = RolesEnum.findByStringOrThrow(roleToModifyStr,
         new NotFoundException("Role not found!"));
     Optional<AppUser> userOpt = userRepo.findByEmail(changeRequest.user().toLowerCase());
@@ -71,10 +122,21 @@ public class AdministratorService {
     }
 
     AppUser user = userOpt.get();
+    AppEvent event = new AppEvent(this, null, request.getRemoteUser(), null,
+        request.getRequestURI());
     switch (operation) {
-      case GRANT -> addUserRole(user, roleToModify);
-      case REMOVE -> removeUserRole(user, roleToModify);
+      case GRANT -> {
+        event.setEventString(SecurityEventsEnum.GRANT_ROLE.toString());
+        event.setObject("Grant role %s to %s".formatted(changeRequest.role(), user.getEmail()));
+        addUserRole(user, roleToModify);
+      }
+      case REMOVE -> {
+        event.setEventString(SecurityEventsEnum.REMOVE_ROLE.toString());
+        event.setObject("Remove role %s from %s".formatted(changeRequest.role(), user.getEmail()));
+        removeUserRole(user, roleToModify);
+      }
     }
+    eventPublisher.publishEvent(event);
 
     userRepo.save(user);
     return user.toUserDTO();
@@ -106,7 +168,7 @@ public class AdministratorService {
     if (roleToRemove == RolesEnum.ADMIN) {
       throw new BadRequestException("Can't remove ADMINISTRATOR role!");
     }
-    if (!userHasRole(user, roleToRemove)) {
+    if (!user.hasRole(roleToRemove)) {
       throw new BadRequestException("The user does not have a role!");
     }
     if (user.getRoles().size() == 1) {
@@ -118,9 +180,4 @@ public class AdministratorService {
             .orElseThrow(() -> new NotFoundException("NOT IMPLEMENTED YET")));
   }
 
-  private boolean userHasRole(AppUser user, RolesEnum role) {
-    return user.getRoles().stream()
-        .anyMatch(r -> r.getCode().equals(
-            role.getString())); // TODO this might be done with the find by stirng in the enum
-  }
 }

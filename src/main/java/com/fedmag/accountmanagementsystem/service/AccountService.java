@@ -5,7 +5,7 @@ import com.fedmag.accountmanagementsystem.common.exceptions.BadRequestException;
 import com.fedmag.accountmanagementsystem.common.requests.PaymentRequest;
 import com.fedmag.accountmanagementsystem.model.EmployeePeriodKey;
 import com.fedmag.accountmanagementsystem.model.Salary;
-import com.fedmag.accountmanagementsystem.model.SalaryRepository;
+import com.fedmag.accountmanagementsystem.model.SalaryRepo;
 import com.fedmag.accountmanagementsystem.model.UserRepo;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -20,11 +20,11 @@ public class AccountService {
   private final static Logger LOG = LoggerFactory.getLogger(AccountService.class);
 
   private final UserRepo userRepo;
-  private final SalaryRepository salaryRepository;
+  private final SalaryRepo salaryRepo;
 
-  public AccountService(UserRepo userRepo, SalaryRepository salaryRepository) {
+  public AccountService(UserRepo userRepo, SalaryRepo salaryRepo) {
     this.userRepo = userRepo;
-    this.salaryRepository = salaryRepository;
+    this.salaryRepo = salaryRepo;
   }
 
 
@@ -36,7 +36,7 @@ public class AccountService {
         .filter(this::salaryPeriodPairIsValid)
         .map(Salary::from)
         .toList();
-    salaryRepository.saveAll(salaryList);
+    salaryRepo.saveAll(salaryList);
     LOG.info("Salaries saved.");
   }
 
@@ -45,18 +45,18 @@ public class AccountService {
 
     assert salaryIsValid(paymentRequest);
 
-    Optional<Salary> salaryOptional = salaryRepository.findByEmployeePeriodKey(
+    Optional<Salary> salaryOptional = salaryRepo.findByEmployeePeriodKey(
         new EmployeePeriodKey(paymentRequest.employee(), paymentRequest.period()));
 
     if (salaryOptional.isEmpty()) {
       LOG.info("The pair {}:{} could not be found in the DB.", paymentRequest.employee(), paymentRequest.period());
-      salaryRepository.save(Salary.from(paymentRequest));
+      salaryRepo.save(Salary.from(paymentRequest));
       return;
     }
 
     Salary salary = salaryOptional.get();
     salary.setSalary(paymentRequest.salary());
-    salaryRepository.save(salary);
+    salaryRepo.save(salary);
     LOG.info("Salary updated.");
   }
 
@@ -71,7 +71,7 @@ public class AccountService {
   }
 
   private boolean salaryPeriodPairIsValid(PaymentRequest paymentRequest) {
-    if (salaryRepository.existsByEmployeePeriodKey(
+    if (salaryRepo.existsByEmployeePeriodKey(
         new EmployeePeriodKey(paymentRequest.employee(), paymentRequest.period()))) {
       throw new BadRequestException("This employee - period pair exists already");
     }

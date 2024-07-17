@@ -48,8 +48,6 @@ public class ExceptionsController {
   public ResponseEntity<CustomErrorMessage> handleAccessDeniedException(AccessDeniedException e,
       WebRequest request) {
 
-    System.out.println(">>>> here we are <<<<");
-
     CustomErrorMessage body = new CustomErrorMessage(
         HttpStatus.FORBIDDEN.value(),
         LocalDateTime.now(),
@@ -73,7 +71,6 @@ public class ExceptionsController {
 
     return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
   }
-
 
   private String formatPath(String uri) {
     return uri.replace("uri=", "");

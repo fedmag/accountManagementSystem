@@ -1,7 +1,7 @@
 package com.fedmag.accountmanagementsystem.controllers;
 
 
-import com.fedmag.accountmanagementsystem.common.dto.SalaryUpdateDto;
+import com.fedmag.accountmanagementsystem.common.dto.StatusUpdateDTO;
 import com.fedmag.accountmanagementsystem.common.requests.PaymentRequest;
 import com.fedmag.accountmanagementsystem.service.AccountService;
 import java.util.List;
@@ -27,16 +27,16 @@ public class AccountController {
   }
 
   @PostMapping("/payments")
-  public ResponseEntity<SalaryUpdateDto> postSalaries(@RequestBody List<PaymentRequest> paymentRequests) {
+  public ResponseEntity<StatusUpdateDTO> postSalaries(@RequestBody List<PaymentRequest> paymentRequests) {
     LOG.info("postSalaries called: {}", paymentRequests);
     accountService.insertSalaries(paymentRequests);
-    return ResponseEntity.ok(new SalaryUpdateDto("Added successfully!"));
+    return ResponseEntity.ok(new StatusUpdateDTO("Added successfully!"));
   }
 
   @PutMapping("/payments")
-  public ResponseEntity<SalaryUpdateDto> putSalary(@RequestBody PaymentRequest paymentRequest) {
+  public ResponseEntity<StatusUpdateDTO> putSalary(@RequestBody PaymentRequest paymentRequest) {
     LOG.info("putSalary called: {}", paymentRequest);
     accountService.updateSalary(paymentRequest);
-    return ResponseEntity.ok(new SalaryUpdateDto("Updated successfully!"));
+    return ResponseEntity.ok(new StatusUpdateDTO("Updated successfully!"));
   }
 }

@@ -1,9 +1,12 @@
 package com.fedmag.accountmanagementsystem.model;
 
+
+import com.fedmag.accountmanagementsystem.common.RolesEnum;
 import com.fedmag.accountmanagementsystem.common.dto.UserDTO;
 import com.fedmag.accountmanagementsystem.common.requests.RegistrationRequest;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,8 +29,11 @@ public class AppUser {
   private String lastname;
   private String email;
   private String password;
+  private boolean accountLocked = false;
+  private int failedAttempt = 0;
 
-  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+  // if we want to avoid EAGER loading we need to get the lazy elements within one trx
+  @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
   @JoinTable(
       name = "user_groups",
       joinColumns = @JoinColumn(name = "user_id"),
@@ -96,11 +102,33 @@ public class AppUser {
     this.roles = roles;
   }
 
+  public boolean isAccountLocked() {
+    return accountLocked;
+  }
+
+  public void setAccountLocked(boolean accountLocked) {
+    this.accountLocked = accountLocked;
+  }
+
+  public int getFailedAttempt() {
+    return failedAttempt;
+  }
+
+  public void setFailedAttempt(int failedAttempt) {
+    this.failedAttempt = failedAttempt;
+  }
+
   public void addRole(Role group) {
     this.roles.add(group);
   }
 
   public void removeRole(Role group) {
     this.roles.remove(group);
+  }
+
+  public boolean hasRole(RolesEnum role) {
+    return this.getRoles().stream()
+        .anyMatch(r -> r.getCode().equals(
+            role.getString())); // TODO this might be done with the find by stirng in the enum
   }
 }

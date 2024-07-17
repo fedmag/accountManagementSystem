@@ -5,7 +5,8 @@ import java.util.Arrays;
 public enum RolesEnum {
   ADMIN("ROLE_ADMINISTRATOR"),
   USER("ROLE_USER"),
-  ACCOUNTANT("ROLE_ACCOUNTANT");
+  ACCOUNTANT("ROLE_ACCOUNTANT"),
+  AUDITOR("ROLE_AUDITOR");
 
   private String string;
 

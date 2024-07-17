@@ -1,5 +1,6 @@
 package com.fedmag.accountmanagementsystem.model;
 
+
 import com.fedmag.accountmanagementsystem.common.requests.PaymentRequest;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
