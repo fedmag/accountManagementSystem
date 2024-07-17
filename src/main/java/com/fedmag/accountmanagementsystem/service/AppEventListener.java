@@ -1,15 +1,16 @@
 package com.fedmag.accountmanagementsystem.service;
 
-
 import com.fedmag.accountmanagementsystem.common.AppEvent;
 import com.fedmag.accountmanagementsystem.model.SecurityEvent;
 import com.fedmag.accountmanagementsystem.model.SecurityEventRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class AppEventListener {
 
@@ -17,8 +18,7 @@ public class AppEventListener {
   private final SecurityEventRepo securityEventRepo;
 
   @Autowired
-  public AppEventListener(LoginService loginService,
-      SecurityEventRepo securityEventRepo) {
+  public AppEventListener(LoginService loginService, SecurityEventRepo securityEventRepo) {
     this.loginService = loginService;
     this.securityEventRepo = securityEventRepo;
   }
@@ -35,9 +35,9 @@ public class AppEventListener {
 
   @EventListener
   public void onAppEvent(AppEvent event) {
-    System.out.println(
-        "\n\n>>> an event of type %s just happened. Saving into securityEventRepo <<<\n\n".formatted(
-            event.getEventString()));
+    log.info(
+        "\n\n>>> an event of type {} just happened. Saving into securityEventRepo <<<\n\n",
+        event.getEventString());
     securityEventRepo.save(SecurityEvent.from(event));
   }
 }

@@ -29,10 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-  private final static Logger log = LoggerFactory.getLogger(AuthService.class);
-
   private final PasswordEncoder passwordEncoder;
-
   private final UserRepo userRepo;
   private final RoleRepo permissionRepository;
   private final ApplicationEventPublisher eventPublisher;
@@ -42,7 +39,6 @@ public class AuthService {
       "PasswordForFebruary", "PasswordForMarch", "PasswordForApril", "PasswordForMay",
       "PasswordForJune", "PasswordForJuly", "PasswordForAugust", "PasswordForSeptember",
       "PasswordForOctober", "PasswordForNovember", "PasswordForDecember");
-
 
   private final static int MIN_PASS_LENGTH = 12;
 

@@ -8,9 +8,11 @@ import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class DataLoader {
 
@@ -23,7 +25,7 @@ public class DataLoader {
 
   @PostConstruct
   private void initializePermission() {
-    System.out.println(">>>> Initializing permission table...");
+    log.info(">>>> Initializing permission table...");
     Set<Role> roles = Arrays.stream(RolesEnum.values())
         .map(group -> new Role(group.getString(), group.getString()))
         .collect(Collectors.toSet());

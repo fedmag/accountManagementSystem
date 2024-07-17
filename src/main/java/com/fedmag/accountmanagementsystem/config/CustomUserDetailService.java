@@ -7,6 +7,7 @@ import com.fedmag.accountmanagementsystem.model.UserRepo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class CustomUserDetailService implements UserDetailsService {
 
@@ -30,7 +32,7 @@ public class CustomUserDetailService implements UserDetailsService {
     AppUser user = userRepo.findByEmail(username.toLowerCase())
         .orElseThrow(() -> new UsernameNotFoundException("User" + username + "could not be found"));
     if (user.isAccountLocked()) {
-      System.out.println("User %s's account is locked.".formatted(username));
+      log.info("User %s's account is locked.".formatted(username));
       throw new LockedException("Fuck you");
     }
     return new User(user.getEmail(),

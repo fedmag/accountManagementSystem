@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmployeeService {
 
-  private final static Logger LOG = LoggerFactory.getLogger(EmployeeService.class);
-
   private final UserRepo userRepo;
   private final SalaryRepo salaryRepo;
 

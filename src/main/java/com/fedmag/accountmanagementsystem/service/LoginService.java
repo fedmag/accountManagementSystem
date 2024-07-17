@@ -9,12 +9,14 @@ import com.fedmag.accountmanagementsystem.model.UserRepo;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class LoginService {
 
@@ -42,16 +44,16 @@ public class LoginService {
   }
 
   public void handleFailure(AbstractAuthenticationFailureEvent failureEvent) {
-    System.out.println("Exception: " + failureEvent.getException());
+    log.info("Exception: " + failureEvent.getException());
     if (failureEvent instanceof AuthenticationFailureBadCredentialsEvent) {
-      System.out.println("Credentials provided by the user are not correct.");
+      log.info("Credentials provided by the user are not correct.");
       registerLoginAttempt(failureEvent);
     }
   }
 
   private void registerLoginAttempt(AbstractAuthenticationFailureEvent failureEvent) {
     String username = failureEvent.getAuthentication().getName();
-    System.out.println("Registering login attempt from " + username);
+    log.info("Registering login attempt from " + username);
     Optional<AppUser> optUser = userRepo.findByEmail(username);
 
     AppEvent failedLoginEvt = new AppEvent(this);
@@ -63,7 +65,7 @@ public class LoginService {
     eventPublisher.publishEvent(failedLoginEvt);
     // unknown user
     if (optUser.isEmpty()) {
-      System.out.println("Emitting event for unknown user.");
+      log.info("Emitting event for unknown user.");
       return;
     }
 
@@ -83,7 +85,7 @@ public class LoginService {
           SecurityEventsEnum.BRUTE_FORCE,
           user.getEmail(), request.getRequestURI(), request.getRequestURI()
       );
-      System.out.println("Emitting brute force event for user " + user.getEmail());
+      log.info("Emitting brute force event for user " + user.getEmail());
       eventPublisher.publishEvent(bruteForceEvt);
     }
   }
@@ -93,10 +95,10 @@ public class LoginService {
       user.setAccountLocked(true);
       // only send the event for the 5th attempt, not subsequent
       if (user.getFailedAttempt() == MAX_ATTEMPTS) {
-        System.out.println("User has: %s failed  attempt now.".formatted(user.getFailedAttempt()));
+        log.info("User has: %s failed  attempt now.".formatted(user.getFailedAttempt()));
         AppEvent lockUserEvent = new AppEvent(this, SecurityEventsEnum.LOCK_USER, user.getEmail(),
             "Lock user %s".formatted(user.getEmail()), request.getRequestURI());
-        System.out.println("Emitting lock event for user " + user.getEmail());
+        log.info("Emitting lock event for user " + user.getEmail());
         eventPublisher.publishEvent(lockUserEvent);
       }
     }
@@ -107,7 +109,7 @@ public class LoginService {
       return false;
     }
     if (user.hasRole(RolesEnum.ADMIN)) {
-      System.out.println("Cannot block ADMIN USER");
+      log.info("Cannot block ADMIN USER");
       return false;
     }
     return true;
